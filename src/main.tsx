@@ -10,7 +10,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 )
 
 // Offline support: register the service worker in production builds only.
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
+// Not in the desktop app (file://), where the app already works offline.
+if ('serviceWorker' in navigator && import.meta.env.PROD && location.protocol.startsWith('http')) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => {})
   })

@@ -37,7 +37,7 @@ Todo se guarda solo en el dispositivo.
 
 ## Instalar en el iPhone
 
-1. Abre en **Safari** la dirección de la app: `https://ggjuan00.github.io/moneyOS.readme/`
+1. Abre en **Safari** la dirección de la app: `https://ggjuan00.github.io/moneyOS/`
 2. Pulsa el botón **Compartir** (el cuadrado con la flecha hacia arriba).
 3. Elige **"Agregar a pantalla de inicio"** y luego **Agregar**.
 
