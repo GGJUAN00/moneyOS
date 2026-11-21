@@ -71,14 +71,9 @@ archivo para tu sistema:
   los del celular.
 
 **Generar los instaladores:** el flujo `.github/workflows/desktop.yml` los construye en GitHub
-en Windows, macOS y Linux. Se lanza solo al subir una etiqueta de versión:
-
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
-
-o a mano desde **Actions → App de escritorio → Run workflow**.
+en Windows, macOS y Linux y los publica en **Releases** con la versión de `package.json`.
+Se lanza desde **Actions → App de escritorio → Run workflow** (o subiendo una etiqueta `vX.Y.Z`).
+Para sacar una versión nueva, cambia `"version"` en `package.json` y vuelve a lanzarlo.
 
 Para probarlo en tu computador: `npm install` y luego `npm run desktop`.
 Para generar el instalador de tu propio sistema: `npm run dist`.

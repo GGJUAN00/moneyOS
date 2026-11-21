@@ -1,9 +1,8 @@
 name: App de escritorio
 
-# Genera los instaladores de MoneyOS para Windows, macOS y Linux.
-# - Al subir una etiqueta vX.Y.Z (por ejemplo v1.0.0) los publica en "Releases".
-# - También se puede lanzar a mano desde la pestaña Actions; entonces quedan como
-#   "Artifacts" descargables del propio flujo.
+# Genera los instaladores de MoneyOS para Windows, macOS y Linux y los publica en "Releases"
+# con la versión de package.json (por ejemplo v1.0.0).
+# Se lanza a mano desde la pestaña Actions ("Run workflow") o al subir una etiqueta vX.Y.Z.
 on:
   push:
     tags: ['v*']
@@ -14,24 +13,26 @@ permissions:
 
 jobs:
   release:
-    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Crear la versión en Releases
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ github.ref_name }}
         run: |
-          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
-          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --title "MoneyOS $TAG" --notes "Instaladores de MoneyOS para escritorio.
+          TAG="v$(node -p "require('./package.json').version")"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "La versión $TAG ya existe; se actualizarán sus archivos."
+          else
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "MoneyOS $TAG" --notes "Instaladores de MoneyOS para escritorio.
 
           - **Windows**: \`MoneyOS-…-instalador-windows.exe\` (instalador) o \`MoneyOS-…-portable.exe\` (sin instalar).
           - **macOS**: \`MoneyOS-…-mac-arm64.dmg\` (Apple M1/M2/M3/M4) o \`MoneyOS-…-mac-x64.dmg\` (Intel).
           - **Linux**: \`.AppImage\` o \`.deb\`."
+          fi
 
   build:
     needs: release
-    if: always() && (needs.release.result == 'success' || needs.release.result == 'skipped')
     strategy:
       fail-fast: false
       matrix:
@@ -56,9 +57,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
-        run: |
-          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then PUBLISH=always; else PUBLISH=never; fi
-          npx electron-builder ${{ matrix.target }} --publish "$PUBLISH"
+        run: npx electron-builder ${{ matrix.target }} --publish always
       - uses: actions/upload-artifact@v4
         with:
           name: MoneyOS-${{ runner.os }}
