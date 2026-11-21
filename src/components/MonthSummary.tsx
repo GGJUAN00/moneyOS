@@ -18,7 +18,7 @@ function Money({ value, className, color = '#F4F4F5', sign = false }: { value: n
 export function MonthSummaryPrompt({ summary, onOpen, onLater }: { summary: MonthSummary; onOpen: () => void; onLater: () => void }) {
   const name = monthName(summary.month)
   return (
-    <div className="absolute inset-0 z-30 flex items-center justify-center px-6 backdrop-in" role="dialog" aria-modal="true" aria-label={`Resumen de ${name}`}>
+    <div className="narrow-root absolute inset-0 z-30 flex items-center justify-center px-6 backdrop-in" role="dialog" aria-modal="true" aria-label={`Resumen de ${name}`}>
       <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }} />
       <div className="relative w-full rounded-3xl p-6 metal-card pop-in">
         <p className="text-[11px] font-medium mb-2" style={{ color: '#8C8C93', letterSpacing: '0.18em' }}>TERMINÓ {name.toUpperCase()}</p>
@@ -56,7 +56,7 @@ export default function MonthSummaryView({ summary, onClose }: { summary: MonthS
   const topCat = summary.categories[0]
 
   return (
-    <div className="absolute inset-0 z-30 flex flex-col sheet-in" style={{ background: '#050505' }} role="dialog" aria-modal="true" aria-label={`Resumen de ${name}`}>
+    <div className="wide-root absolute inset-0 z-30 flex flex-col sheet-in" style={{ background: '#050505' }} role="dialog" aria-modal="true" aria-label={`Resumen de ${name}`}>
       <div className="flex items-center justify-between px-6 pt-5 pb-3 flex-shrink-0">
         <div>
           <p className="text-[11px] font-medium" style={{ color: '#8C8C93', letterSpacing: '0.18em' }}>RESUMEN DEL MES</p>

@@ -73,7 +73,32 @@ export async function checkPin(pin: string, c: LockConfig): Promise<boolean> {
   return (await hashPin(pin, c.salt)) === c.pinHash
 }
 
-// ---- Face ID (platform authenticator) ----
+// ---- Biometrics ----
+// Web (iPhone, Mac, Windows browsers): a WebAuthn passkey → Face ID / Touch ID / Windows Hello.
+// Desktop app (Electron): the native prompt through the preload bridge (Touch ID / Windows Hello).
+
+interface DesktopBridge {
+  platform: string
+  biometricAvailable: () => Promise<boolean>
+  verifyBiometric: (reason: string) => Promise<boolean>
+  onLockRequest: (cb: () => void) => () => void
+}
+
+export const desktop: DesktopBridge | undefined =
+  typeof window !== 'undefined' ? (window as unknown as { moneyosDesktop?: DesktopBridge }).moneyosDesktop : undefined
+
+const DESKTOP_CREDENTIAL = 'desktop-native'
+
+/** What the unlock is called on this device: "Face ID", "Touch ID", "Windows Hello"… */
+export function biometricName(): string {
+  if (desktop) return desktop.platform === 'darwin' ? 'Touch ID' : desktop.platform === 'win32' ? 'Windows Hello' : 'biometría'
+  const ua = navigator.userAgent
+  if (/iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) return 'Face ID'
+  if (/Macintosh/.test(ua)) return 'Touch ID'
+  if (/Windows/.test(ua)) return 'Windows Hello'
+  if (/Android/.test(ua)) return 'tu huella'
+  return 'Face ID'
+}
 
 // While iOS shows its Face ID sheet the page can briefly look hidden; the app checks this
 // flag so that unlocking doesn't immediately re-lock it.
@@ -93,6 +118,13 @@ async function guarded<T>(fn: () => Promise<T>): Promise<T> {
 }
 
 export async function biometricAvailable(): Promise<boolean> {
+  if (desktop) {
+    try {
+      return await desktop.biometricAvailable()
+    } catch {
+      return false
+    }
+  }
   try {
     return !!window.PublicKeyCredential &&
       (await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable())
@@ -103,6 +135,11 @@ export async function biometricAvailable(): Promise<boolean> {
 
 /** Creates a passkey on this device; iOS asks for Face ID to save it. Returns its id. */
 export async function registerBiometric(userName: string, displayName: string): Promise<string> {
+  if (desktop) {
+    const ok = await guarded(() => desktop.verifyBiometric('activar el desbloqueo de MoneyOS'))
+    if (!ok) throw new Error('No se verificó')
+    return DESKTOP_CREDENTIAL
+  }
   const cred = (await guarded(() => navigator.credentials.create({
     publicKey: {
       challenge: random(32),
@@ -123,6 +160,10 @@ export async function registerBiometric(userName: string, displayName: string): 
 
 /** Asks for Face ID. Resolves true only when the OS confirms the user was verified. */
 export async function verifyBiometric(credentialId: string): Promise<boolean> {
+  if (credentialId === DESKTOP_CREDENTIAL) {
+    if (!desktop) return false
+    return guarded(() => desktop.verifyBiometric('desbloquear MoneyOS'))
+  }
   const cred = (await guarded(() => navigator.credentials.get({
     publicKey: {
       challenge: random(32),

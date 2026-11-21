@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import PinPad from './PinPad'
-import { biometricAvailable, hashPin, newSalt, registerBiometric, saveLock } from '../lib/lock'
+import { biometricAvailable, biometricName, desktop, hashPin, newSalt, registerBiometric, saveLock } from '../lib/lock'
 import type { LockConfig } from '../lib/lock'
 
 interface Props {
@@ -14,6 +14,7 @@ type Step = 'intro' | 'pin' | 'confirm' | 'bio'
 
 export default function LockSetup({ userName, displayName, onDone, onSkip }: Props) {
   const [step, setStep] = useState<Step>('intro')
+  const bio = biometricName()
   const [first, setFirst] = useState('')
   const [error, setError] = useState('')
   const [bioOk, setBioOk] = useState<boolean | null>(null)
@@ -53,26 +54,28 @@ export default function LockSetup({ userName, displayName, onDone, onSkip }: Pro
       const id = await registerBiometric(userName, displayName)
       finish(id)
     } catch {
-      setBioError('No se activó Face ID. Puedes intentarlo otra vez o seguir solo con el PIN.')
+      setBioError(`No se activó ${bio}. Puedes intentarlo otra vez o seguir solo con el PIN.`)
     } finally {
       setBusy(false)
     }
   }
 
   return (
-    <div className="absolute inset-0 z-40 flex flex-col px-6 lock-in" style={{ background: '#050505', paddingTop: 'calc(env(safe-area-inset-top, 0px) + 40px)', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 28px)' }} role="dialog" aria-modal="true" aria-label="Proteger la app">
+    <div className="narrow-root absolute inset-0 z-40 flex flex-col px-6 lock-in" style={{ background: '#050505', paddingTop: 'calc(env(safe-area-inset-top, 0px) + 40px)', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 28px)' }} role="dialog" aria-modal="true" aria-label="Proteger la app">
       {step === 'intro' && (
         <div className="flex-1 flex flex-col fade-up">
           <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-8 metal-card" style={{ color: '#F4F4F5' }}>
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><rect x="5" y="10.5" width="14" height="10" rx="2.5" stroke="currentColor" strokeWidth="1.6" /><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
           </div>
           <p className="text-[11px] mb-2" style={{ color: '#8C8C93', letterSpacing: '0.18em' }}>SEGURIDAD</p>
-          <p className="text-3xl font-light leading-tight" style={{ color: '#FFFFFF' }}>Protege tu app<br />con Face ID</p>
+          <p className="text-3xl font-light leading-tight" style={{ color: '#FFFFFF' }}>Protege tu app<br />con {bioOk === false ? 'un PIN' : bio}</p>
           <p className="text-sm mt-4 leading-relaxed" style={{ color: '#A8A8AF' }}>
-            Cada vez que entres a MoneyOS te pediremos Face ID. También crearás un PIN de 4 dígitos por si Face ID no funciona.
+            {bioOk === false
+              ? 'Cada vez que entres a MoneyOS te pediremos un PIN de 4 dígitos que vas a crear ahora.'
+              : `Cada vez que entres a MoneyOS te pediremos ${bio}. También crearás un PIN de 4 dígitos por si ${bio} no funciona.`}
           </p>
           {bioOk === false && (
-            <p className="text-xs mt-4" style={{ color: '#8C8C93' }}>Este dispositivo no tiene Face ID disponible en el navegador; la app se protegerá solo con el PIN.</p>
+            <p className="text-xs mt-4" style={{ color: '#8C8C93' }}>Este equipo no tiene Face ID, Touch ID ni Windows Hello disponibles, así que la app se protegerá con el PIN.</p>
           )}
           <div className="mt-auto">
             <button onClick={() => setStep('pin')} className="w-full rounded-2xl py-4 text-base font-semibold btn-press" style={{ background: '#F4F4F5', color: '#050505' }}>
@@ -85,7 +88,7 @@ export default function LockSetup({ userName, displayName, onDone, onSkip }: Pro
 
       {step === 'pin' && (
         <div className="flex-1 flex flex-col items-center justify-center fade-up">
-          <PinPad title="Crea un PIN de 4 dígitos" subtitle="Lo usarás si Face ID no funciona" error={error} onComplete={pin => { setFirst(pin); setError(''); setStep('confirm') }} />
+          <PinPad title="Crea un PIN de 4 dígitos" subtitle={`Lo usarás si ${bio} no funciona`} error={error} onComplete={pin => { setFirst(pin); setError(''); setStep('confirm') }} />
         </div>
       )}
 
@@ -98,14 +101,14 @@ export default function LockSetup({ userName, displayName, onDone, onSkip }: Pro
       {step === 'bio' && (
         <div className="flex-1 flex flex-col fade-up">
           <p className="text-[11px] mb-2" style={{ color: '#8C8C93', letterSpacing: '0.18em' }}>ÚLTIMO PASO</p>
-          <p className="text-3xl font-light leading-tight" style={{ color: '#FFFFFF' }}>Activa Face ID</p>
+          <p className="text-3xl font-light leading-tight" style={{ color: '#FFFFFF' }}>Activa {bio}</p>
           <p className="text-sm mt-4 leading-relaxed" style={{ color: '#A8A8AF' }}>
-            Tu iPhone te pedirá Face ID y guardará una llave de acceso para MoneyOS. Esa llave solo sirve para desbloquear la app.
+            {desktop ? `Tu computador te pedirá ${bio} para confirmar que eres tú.` : `Tu dispositivo te pedirá ${bio} y guardará una llave de acceso para MoneyOS. Esa llave solo sirve para desbloquear la app.`}
           </p>
           {bioError && <p className="text-xs mt-4" style={{ color: '#E0706B' }}>{bioError}</p>}
           <div className="mt-auto">
             <button onClick={activateBio} disabled={busy} className="w-full rounded-2xl py-4 text-base font-semibold btn-press" style={{ background: '#F4F4F5', color: '#050505', opacity: busy ? 0.6 : 1 }}>
-              {busy ? 'Esperando Face ID…' : 'Activar Face ID'}
+              {busy ? `Esperando ${bio}…` : `Activar ${bio}`}
             </button>
             <button onClick={() => finish(null)} className="w-full py-3 mt-1 text-sm" style={{ color: '#8C8C93' }}>Usar solo el PIN</button>
           </div>

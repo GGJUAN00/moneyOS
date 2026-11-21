@@ -96,7 +96,7 @@ export default function Dashboard({ user, transactions, settings, onNavigate, on
   return (
     <div className="h-full overflow-y-auto scrollbar-hide stagger" style={{ background: '#050505' }}>
       {/* Colombian date & time */}
-      <div className="px-6 pt-3">
+      <div className="px-6 pt-3 dash-clock">
         <ColombiaClock />
       </div>
 

@@ -22,6 +22,16 @@ export default function PinPad({ title, subtitle, error, disabled, onComplete, l
     return () => clearTimeout(t)
   }, [error])
 
+  // Physical keyboard (desktop): digits and Backspace
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (/^[0-9]$/.test(e.key)) press(e.key)
+      else if (e.key === 'Backspace') setPin(p => p.slice(0, -1))
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  })
+
   function press(d: string) {
     if (disabled || pin.length >= length) return
     const next = pin + d

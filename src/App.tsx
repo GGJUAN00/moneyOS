@@ -8,10 +8,12 @@ import ProfileSheet from './components/ProfileSheet'
 import EntrySheet from './components/EntrySheet'
 import BudgetSheet from './components/BudgetSheet'
 import ColombiaClock from './components/ColombiaClock'
+import Sidebar from './components/Sidebar'
+import { useIsDesktop } from './hooks/useIsDesktop'
 import LockScreen from './components/LockScreen'
 import LockSetup from './components/LockSetup'
 import MonthSummaryView, { MonthSummaryPrompt } from './components/MonthSummary'
-import { authInProgress, clearLock, loadLock, type LockConfig } from './lib/lock'
+import { authInProgress, clearLock, desktop, loadLock, type LockConfig } from './lib/lock'
 import { markSummarySeen, pendingSummaryKey, summarize } from './lib/summary'
 import { clearUser, displayName, loadUser, type UserProfile } from './lib/user'
 import { playDelete, playExpense, playIncome, playTap, setSoundEnabled } from './lib/sound'
@@ -93,6 +95,7 @@ const tabs: { key: Tab; label: string; Icon: React.ComponentType<{ active: boole
 
 export default function App() {
   const [tab, setTab] = useState<Tab>('home')
+  const isDesktop = useIsDesktop()
   const [user, setUser] = useState<UserProfile | null>(() => loadUser())
   const [profileOpen, setProfileOpen] = useState(false)
   const [transactions, setTransactions] = useState<Transaction[]>(() => loadTransactions())
@@ -132,7 +135,12 @@ export default function App() {
       }
     }
     document.addEventListener('visibilitychange', onVisibility)
-    return () => document.removeEventListener('visibilitychange', onVisibility)
+    // Desktop app: also lock when the computer is locked or goes to sleep
+    const offDesktop = desktop?.onLockRequest(() => { if (lock) setLocked(true) })
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility)
+      offDesktop?.()
+    }
   }, [lock])
 
   function dismissSetup() {
@@ -233,7 +241,7 @@ export default function App() {
 
   return (
     <div
-      className="app-stage w-full flex items-center justify-center"
+      className={`app-stage w-full flex items-center justify-center ${isDesktop ? 'desktop' : ''}`}
       style={{ background: '#000000' }}
     >
       {/* Phone shell: framed mockup on desktop, full-screen app on a real phone (see index.css) */}
@@ -269,16 +277,22 @@ export default function App() {
           style={{ top: 0, width: 120, height: 34, background: '#050505', zIndex: 10 }}
         />
 
+        {/* Desktop: left navigation */}
+        {user && isDesktop && (
+          <Sidebar items={tabs} active={tab} user={user} onSelect={setTab} onAdd={openAdd} onOpenProfile={() => setProfileOpen(true)} />
+        )}
+
+        <div className="main-column flex-1 flex flex-col min-w-0 min-h-0">
         {/* First launch on this device: registration instead of the app */}
         {!user && (
-          <div className="flex-1 overflow-hidden" style={{ minHeight: 0, paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+          <div className="flex-1 overflow-hidden content-width reg-width" style={{ minHeight: 0, paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
             <Registration onComplete={handleRegistered} />
           </div>
         )}
 
         {/* Content area */}
         {user && (
-        <div key={tab} className="flex-1 overflow-hidden tab-in" style={{ minHeight: 0, filter: curtain ? 'blur(24px)' : 'none' }}>
+        <div key={tab} className="flex-1 overflow-hidden tab-in content-width" style={{ minHeight: 0, filter: curtain ? 'blur(24px)' : 'none' }}>
           {tab === 'home' && (
             <Dashboard
               user={user}
@@ -328,8 +342,8 @@ export default function App() {
           />
         )}
 
-        {/* Bottom navigation */}
-        {user && (
+        {/* Bottom navigation (phone) */}
+        {user && !isDesktop && (
         <div
           className="flex items-stretch flex-shrink-0"
           style={{
@@ -367,6 +381,7 @@ export default function App() {
           })}
         </div>
         )}
+        </div>
 
         {user && summaryKey && (
           <MonthSummaryView summary={summarize(transactions, summaryKey)} onClose={() => setSummaryKey(null)} />

@@ -88,7 +88,7 @@ function Welcome({ onStart }: { onStart: () => void }) {
           MoneyOS
         </p>
         <p className="text-base mt-4 leading-relaxed" style={{ color: '#A8A8AF' }}>
-          Controla tus ingresos, gastos y metas de ahorro en pesos colombianos, todo desde tu celular.
+          Controla tus ingresos, gastos y metas de ahorro en pesos colombianos, desde tu celular o tu computador.
         </p>
 
         <div className="mt-8 space-y-3">

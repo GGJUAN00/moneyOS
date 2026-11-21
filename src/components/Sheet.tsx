@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
 
 interface Props {
   label: string
@@ -8,11 +8,16 @@ interface Props {
 
 /** Bottom sheet that slides over the current screen inside the phone frame. */
 export default function Sheet({ label, onClose, children }: Props) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
   return (
-    <div className="absolute inset-0 z-20 flex flex-col justify-end" role="dialog" aria-modal="true" aria-label={label}>
+    <div className="sheet-wrap absolute inset-0 z-20 flex flex-col justify-end" role="dialog" aria-modal="true" aria-label={label}>
       <button aria-label="Cerrar" className="absolute inset-0 backdrop-in" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)' }} onClick={onClose} />
       <div
-        className="relative rounded-t-3xl px-5 pt-3 sheet-in max-h-[92%] overflow-y-auto scrollbar-hide"
+        className="sheet-panel relative rounded-t-3xl px-5 pt-3 sheet-in max-h-[92%] overflow-y-auto scrollbar-hide"
         style={{
           background: '#0C0C0D',
           borderTop: '1px solid rgba(255,255,255,0.08)',

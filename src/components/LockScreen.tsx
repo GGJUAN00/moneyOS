@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import PinPad from './PinPad'
 import { useNow } from '../hooks/useNow'
 import { capitalize, colombiaLongDate, colombiaTime } from '../lib/format'
-import { checkPin, verifyBiometric, type LockConfig } from '../lib/lock'
+import { biometricName, checkPin, verifyBiometric, type LockConfig } from '../lib/lock'
 
 interface Props {
   config: LockConfig
@@ -25,6 +25,7 @@ function FaceIdIcon({ size = 44 }: { size?: number }) {
 export default function LockScreen({ config, name, onUnlock }: Props) {
   const now = useNow(1000)
   const hasBio = !!config.credentialId
+  const bio = biometricName()
   const [mode, setMode] = useState<'bio' | 'pin'>(hasBio ? 'bio' : 'pin')
   const [bioError, setBioError] = useState('')
   const [pinError, setPinError] = useState('')
@@ -46,10 +47,10 @@ export default function LockScreen({ config, name, onUnlock }: Props) {
     setBioError('')
     try {
       if (await verifyBiometric(config.credentialId)) done()
-      else if (!silent) setBioError('No se pudo verificar. Intenta de nuevo o usa tu PIN.')
+      else if (!silent) setBioError(`No se pudo verificar. Intenta de nuevo o usa tu PIN.`)
     } catch {
       // The automatic attempt can be refused by iOS until the user taps; stay quiet then.
-      if (!silent) setBioError('Face ID cancelado. Toca el botón para intentarlo otra vez.')
+      if (!silent) setBioError(`${bio} cancelado. Toca el botón para intentarlo otra vez.`)
     }
   }
 
@@ -78,7 +79,7 @@ export default function LockScreen({ config, name, onUnlock }: Props) {
 
   return (
     <div
-      className={`absolute inset-0 z-50 flex flex-col items-center px-6 ${leaving ? 'lock-out' : 'lock-in'}`}
+      className={`narrow-root absolute inset-0 z-50 flex flex-col items-center px-6 ${leaving ? 'lock-out' : 'lock-in'}`}
       style={{ background: 'radial-gradient(120% 70% at 50% 0%, #1A1A1C 0%, #050505 60%)', paddingTop: 'calc(env(safe-area-inset-top, 0px) + 48px)' }}
       role="dialog"
       aria-modal="true"
@@ -101,7 +102,7 @@ export default function LockScreen({ config, name, onUnlock }: Props) {
           {bioError && <p className="text-xs mt-3 text-center" style={{ color: '#E0706B' }}>{bioError}</p>}
           <div className="mt-auto w-full pb-10" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)' }}>
             <button onClick={() => tryBiometric()} className="w-full rounded-2xl py-4 text-base font-semibold btn-press flex items-center justify-center gap-2" style={{ background: '#F4F4F5', color: '#050505' }}>
-              <FaceIdIcon size={20} /> Desbloquear con Face ID
+              <FaceIdIcon size={20} /> Desbloquear con {bio}
             </button>
             <button onClick={() => setMode('pin')} className="w-full py-3 mt-2 text-sm" style={{ color: '#A8A8AF' }}>
               Usar PIN
@@ -119,7 +120,7 @@ export default function LockScreen({ config, name, onUnlock }: Props) {
           />
           {hasBio && (
             <button onClick={() => { setMode('bio'); void tryBiometric() }} className="mt-6 text-sm" style={{ color: '#A8A8AF' }}>
-              Usar Face ID
+              Usar {bio}
             </button>
           )}
         </div>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { colombiaDateOf } from '../lib/format'
+import { biometricName } from '../lib/lock'
 import { documentTypes, formatPhone, initialsOf, type UserProfile } from '../lib/user'
 
 interface Props {
@@ -22,6 +23,7 @@ function formatDate(iso: string): string {
 export default function ProfileSheet({ user, soundOn, onToggleSound, lockOn, lockHasFaceId, onEnableLock, onDisableLock, onClose, onDelete }: Props) {
   const [confirming, setConfirming] = useState(false)
   const [confirmUnlock, setConfirmUnlock] = useState(false)
+  const bio = biometricName()
   const docLabel = documentTypes.find(d => d.value === user.documentType)?.label ?? user.documentType
 
   const rows: [string, string][] = [
@@ -35,10 +37,10 @@ export default function ProfileSheet({ user, soundOn, onToggleSound, lockOn, loc
   ]
 
   return (
-    <div className="absolute inset-0 z-20 flex flex-col justify-end" role="dialog" aria-modal="true" aria-label="Mi perfil">
+    <div className="sheet-wrap absolute inset-0 z-20 flex flex-col justify-end" role="dialog" aria-modal="true" aria-label="Mi perfil">
       <button aria-label="Cerrar" className="absolute inset-0 backdrop-in" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)' }} onClick={onClose} />
       <div
-        className="relative rounded-t-3xl px-5 pt-3 sheet-in max-h-[90%] overflow-y-auto scrollbar-hide"
+        className="sheet-panel relative rounded-t-3xl px-5 pt-3 sheet-in max-h-[90%] overflow-y-auto scrollbar-hide"
         style={{
           background: '#0C0C0D',
           borderTop: '1px solid rgba(255,255,255,0.08)',
@@ -81,9 +83,9 @@ export default function ProfileSheet({ user, soundOn, onToggleSound, lockOn, loc
             className="w-full flex items-center justify-between px-4 py-3"
           >
             <span className="text-left">
-              <span className="block text-sm" style={{ color: '#F4F4F5' }}>Bloqueo con Face ID</span>
+              <span className="block text-sm" style={{ color: '#F4F4F5' }}>Bloqueo con {bio}</span>
               <span className="block text-[11px]" style={{ color: '#8C8C93' }}>
-                {lockOn ? (lockHasFaceId ? 'Face ID y PIN cada vez que entras' : 'PIN cada vez que entras') : 'Desactivado'}
+                {lockOn ? (lockHasFaceId ? `${bio} y PIN cada vez que entras` : 'PIN cada vez que entras') : 'Desactivado'}
               </span>
             </span>
             <span className="relative flex-shrink-0 rounded-full transition-colors duration-200" style={{ width: 46, height: 28, background: lockOn ? '#F4F4F5' : '#3C3C41' }}>

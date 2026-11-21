@@ -43,6 +43,46 @@ Todo se guarda solo en el dispositivo.
 
 Tiene que ser Safari; desde Chrome en iPhone no aparece esa opción.
 
+## App de escritorio (Windows, macOS y Linux)
+
+MoneyOS también es un programa de escritorio (hecho con Electron, a partir del mismo código).
+En pantallas grandes la app usa una barra lateral con el menú, la hora de Colombia y accesos
+rápidos; las ventanas para agregar dinero o una transacción se abren en el centro.
+
+**Descargar:** en GitHub, entra a **Releases** (columna derecha del repositorio) y baja el
+archivo para tu sistema:
+
+| Sistema | Archivo |
+| --- | --- |
+| Windows | `MoneyOS-x.y.z-instalador-windows.exe` (instalador) o `MoneyOS-x.y.z-portable.exe` (sin instalar) |
+| Mac con chip Apple (M1–M4) | `MoneyOS-x.y.z-mac-arm64.dmg` |
+| Mac con Intel | `MoneyOS-x.y.z-mac-x64.dmg` |
+| Linux | `MoneyOS-x.y.z-linux-x86_64.AppImage` o `.deb` |
+
+- **Windows:** como el programa no está firmado con un certificado comercial, Windows puede
+  mostrar "Windows protegió tu PC". Toca **Más información → Ejecutar de todas formas**.
+- **Mac:** abre el `.dmg` y arrastra MoneyOS a Aplicaciones. La primera vez, haz clic derecho
+  sobre MoneyOS → **Abrir** → **Abrir**. Si dice que "está dañado", abre la Terminal y ejecuta
+  `xattr -cr /Applications/MoneyOS.app`.
+- **Desbloqueo:** en Mac se usa **Touch ID** y en Windows **Windows Hello** (rostro, huella o
+  PIN de Windows); si no hay, se usa el PIN de MoneyOS. La app también se bloquea cuando
+  bloqueas el computador o lo suspendes.
+- Los datos del programa de escritorio se guardan en ese computador y son independientes de
+  los del celular.
+
+**Generar los instaladores:** el flujo `.github/workflows/desktop.yml` los construye en GitHub
+en Windows, macOS y Linux. Se lanza solo al subir una etiqueta de versión:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+o a mano desde **Actions → App de escritorio → Run workflow**.
+
+Para probarlo en tu computador: `npm install` y luego `npm run desktop`.
+Para generar el instalador de tu propio sistema: `npm run dist`.
+
 ## Publicación
 
 Cada vez que se sube un cambio a la rama `main`, GitHub Actions compila la app y deja el
@@ -88,4 +128,4 @@ en el teléfono sin cifrar. El PIN se guarda solo como hash.
   Se pueden apagar en el perfil (toca tus iniciales → **Sonidos**). En iPhone no suenan
   si el celular está en modo silencio.
 
-Tecnologías: React 19, TypeScript, Vite, Tailwind CSS 4 y Recharts.
+Tecnologías: React 19, TypeScript, Vite, Tailwind CSS 4, Recharts y Electron (escritorio).

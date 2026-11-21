@@ -57,8 +57,8 @@ function Empty({ text }: { text: string }) {
   return <p className="text-xs text-center py-10" style={{ color: '#8C8C93' }}>{text}</p>
 }
 
-const axisTick = { fill: '#8C8C93', fontSize: 10, fontFamily: 'Manrope' }
-const labelTick = { fill: '#8C8C93', fontSize: 11, fontFamily: 'Manrope' }
+const axisTick = { fill: '#8C8C93', fontSize: 10, fontFamily: 'Manrope Variable' }
+const labelTick = { fill: '#8C8C93', fontSize: 11, fontFamily: 'Manrope Variable' }
 
 export default function Charts({ transactions, onOpenSummary }: { transactions: Transaction[]; onOpenSummary: (key: string) => void }) {
   const [view, setView] = useState<View>('monthly')
