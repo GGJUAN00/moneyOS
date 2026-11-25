@@ -1,126 +1,125 @@
-# MoneyOS
+# MoneyOS (Java + Spring Boot)
 
-App de finanzas personales, construida a partir del diseño de Figma Make
-**MoneyOS Personal Finance App**.
+Aplicación web de **finanzas personales en pesos colombianos**, hecha en **Java 21** con
+**Spring Boot**, con **registro de usuarios**, **inicio de sesión** y **Panel Administrativo con
+roles** (ADMIN, OPERADOR y CONSULTA), siguiendo las ideas de la guía *“Sistema de Inicio de
+Sesión (Login) y Panel Administrativo con Roles de Usuario en Java Swing”*, llevadas a la web.
 
-Es una **app web instalable (PWA)**: se instala en el iPhone desde Safari, sin App Store,
-se abre a pantalla completa con su propio icono y funciona sin internet.
-Está completamente en español y todos los montos están en pesos colombianos (COP).
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/GGJUAN00/moneyOS)
 
-## Registro
+## Qué tiene
 
-La primera vez que alguien abre la app en un dispositivo, se le pide registrarse con sus datos
-(nombres, apellidos, tipo y número de documento, fecha de nacimiento, celular, correo, ciudad y
-ocupación) y aceptar el tratamiento de datos (Ley 1581 de 2012). Desde entonces la app entra
-directo. Los datos se guardan **solo en ese dispositivo** (no se envían a ningún servidor) y se
-pueden ver o borrar tocando las iniciales arriba a la derecha.
+- **Login** como en la guía: usuario y contraseña, casilla *Mostrar contraseña*, botones
+  *Limpiar* e *Ingresar* (también con Enter), contador **“Intentos disponibles: 3”** y bloqueo
+  al tercer intento fallido. El usuario no distingue mayúsculas (`admin` = `ADMIN`); la
+  contraseña sí.
+- **Registro de usuarios** (*Crear cuenta*): nombre, usuario, correo, celular y contraseña. La
+  cuenta queda **pendiente** hasta que un administrador la apruebe y le asigne un rol.
+- **Panel Administrativo** con barra superior (bienvenida, **insignia de rol de color** y
+  *Cerrar sesión* con confirmación), **pestañas según el rol** y barra de estado.
+- **Gestión de Usuarios** (solo ADMIN): crear usuarios con rol, tabla sin contraseñas, buscar,
+  cambiar rol, aprobar cuentas pendientes, desbloquear y **eliminar el usuario seleccionado**
+  (no deja eliminar la propia cuenta ni al único administrador).
+- **Finanzas**: saldo, *Agregar dinero* y *Transacción* con tipo de gasto (Comida, Transporte,
+  Compras, Facturas…), presupuesto mensual, tabla de movimientos con buscador, gráficas
+  (por mes, por semana, saldo y categorías) y **resumen de cada mes** al terminar.
+- Fecha y hora de **Colombia**, diseño **negro y gris**, animaciones suaves y **sonidos** al
+  guardar o eliminar un movimiento (se pueden apagar en *Mi cuenta*).
+- Contraseñas **cifradas con BCrypt**; datos guardados en **base de datos** (no se pierden al
+  cerrar el programa, a diferencia de los arreglos de la guía).
 
-> En iPhone, la app instalada en la pantalla de inicio guarda sus datos aparte de Safari: si te
-> registras en Safari y luego la instalas, te pedirá el registro una vez más dentro de la app.
+## Roles y permisos
 
-## Pantallas
+| Rol | Insignia | Inicio | Movimientos | Registrar movimiento | Gráficas | Gestión de Usuarios |
+| --- | --- | --- | --- | --- | --- | --- |
+| **ADMIN** | rojo | Sí | Sí | Sí | Sí | **Sí (exclusivo)** |
+| **OPERADOR** | verde azulado | Sí | Sí | Sí | Sí | No |
+| **CONSULTA** | azul | Sí | Sí (solo lectura) | No | Sí | No |
 
-- **Inicio**: saludo con tu nombre, saldo disponible, botones **Agregar dinero** y **Transacción**, ingresos/gastos/ahorro del mes, presupuesto mensual, gastos por categoría y últimos movimientos.
-- **Gráficas**: gasto por mes (últimos 6), gasto de la semana día por día y evolución del saldo.
-- **Movimientos**: todo lo que has anotado, agrupado por día y con filtro por categoría. Toca un movimiento para editarlo o borrarlo.
-- **Asistente**: responde preguntas (saldo, en qué gastas más, presupuesto, ahorro, una categoría) calculando con tus propios datos.
+Todos tienen además la pestaña *Mi cuenta* (datos, cambiar contraseña y sonidos).
+Los permisos se revisan en el servidor: aunque alguien escriba la dirección a mano, Java no lo
+deja hacer lo que su rol no permite.
 
-## Cómo se usa
+## Ejecutar en tu computador (IntelliJ IDEA)
 
-La app empieza con saldo **$ 0**. No se conecta a Nequi ni a ningún banco: tú anotas tu plata.
+Requisitos: **JDK 21**.
 
-1. **Agregar dinero** → escribe lo que tienes hoy en Nequi (categoría *Saldo inicial*). Úsalo también cada vez que te entre plata (salario, te enviaron, etc.).
-2. **Transacción** → cada vez que gastes, escribe el monto y elige el tipo de gasto: Comida, Transporte, Compras, Facturas, Entretenimiento, Salud, Educación, Hogar, Envíos u Otros.
-3. Opcional: toca **Presupuesto mensual** para ponerte un límite de gasto.
+1. En IntelliJ IDEA: **File → Open…** y elige la carpeta del proyecto (la que tiene `pom.xml`).
+   IntelliJ descarga las librerías solo.
+2. Abre `src/main/java/com/moneyos/MoneyOsAplicacion.java` y pulsa **Run** (▶) junto a `main`.
+3. Abre en el navegador **http://localhost:8080**
 
-Todo se guarda solo en el dispositivo.
+También desde la terminal: `./mvnw spring-boot:run` (o `mvn spring-boot:run`).
 
-## Instalar en el iPhone
+La primera vez se crean los usuarios de prueba de la guía (solo en tu computador):
 
-1. Abre en **Safari** la dirección de la app: `https://ggjuan00.github.io/moneyOS/`
-2. Pulsa el botón **Compartir** (el cuadrado con la flecha hacia arriba).
-3. Elige **"Agregar a pantalla de inicio"** y luego **Agregar**.
+| Usuario | Contraseña | Nombre | Rol |
+| --- | --- | --- | --- |
+| admin | 1234 | Carlos Mendoza | ADMIN |
+| operador | 1234 | Laura Gómez | OPERADOR |
+| consulta | 1234 | Andrés Pérez | CONSULTA |
 
-Tiene que ser Safari; desde Chrome en iPhone no aparece esa opción.
+Los datos se guardan en la carpeta `datos/` (base de datos H2). Para empezar de cero, cierra la
+app y borra esa carpeta.
 
-## App de escritorio (Windows, macOS y Linux)
-
-MoneyOS también es un programa de escritorio (hecho con Electron, a partir del mismo código).
-En pantallas grandes la app usa una barra lateral con el menú, la hora de Colombia y accesos
-rápidos; las ventanas para agregar dinero o una transacción se abren en el centro.
-
-**Descargar:** en GitHub, entra a **Releases** (columna derecha del repositorio) y baja el
-archivo para tu sistema:
-
-| Sistema | Archivo |
-| --- | --- |
-| Windows | `MoneyOS-x.y.z-instalador-windows.exe` (instalador) o `MoneyOS-x.y.z-portable.exe` (sin instalar) |
-| Mac con chip Apple (M1–M4) | `MoneyOS-x.y.z-mac-arm64.dmg` |
-| Mac con Intel | `MoneyOS-x.y.z-mac-x64.dmg` |
-| Linux | `MoneyOS-x.y.z-linux-x86_64.AppImage` o `.deb` |
-
-- **Windows:** como el programa no está firmado con un certificado comercial, Windows puede
-  mostrar "Windows protegió tu PC". Toca **Más información → Ejecutar de todas formas**.
-- **Mac:** abre el `.dmg` y arrastra MoneyOS a Aplicaciones. La primera vez, haz clic derecho
-  sobre MoneyOS → **Abrir** → **Abrir**. Si dice que "está dañado", abre la Terminal y ejecuta
-  `xattr -cr /Applications/MoneyOS.app`.
-- **Desbloqueo:** en Mac se usa **Touch ID** y en Windows **Windows Hello** (rostro, huella o
-  PIN de Windows); si no hay, se usa el PIN de MoneyOS. La app también se bloquea cuando
-  bloqueas el computador o lo suspendes.
-- Los datos del programa de escritorio se guardan en ese computador y son independientes de
-  los del celular.
-
-**Generar los instaladores:** el flujo `.github/workflows/desktop.yml` los construye en GitHub
-en Windows, macOS y Linux y los publica en **Releases** con la versión de `package.json`.
-Se lanza desde **Actions → App de escritorio → Run workflow** (o subiendo una etiqueta `vX.Y.Z`).
-Para sacar una versión nueva, cambia `"version"` en `package.json` y vuelve a lanzarlo.
-
-Para probarlo en tu computador: `npm install` y luego `npm run desktop`.
-Para generar el instalador de tu propio sistema: `npm run dist`.
-
-## Publicación
-
-Cada vez que se sube un cambio a la rama `main`, GitHub Actions compila la app y deja el
-resultado en la rama `gh-pages`, desde donde GitHub Pages la publica
-(`.github/workflows/deploy.yml`). No hace falta configurar nada más.
-
-## Desarrollo
+## Pruebas
 
 ```bash
-npm install
-npm run dev      # servidor local
-npm run build    # compila a dist/
+mvn test
 ```
 
-## Seguridad: Face ID cada vez que entras
+`src/test/java/com/moneyos/PlanDePruebasGuiaTest.java` automatiza el **plan de pruebas de la guía
+(Tabla 8)** adaptado a la web: campos vacíos, mostrar contraseña, clave incorrecta, bloqueo a los 3
+intentos, pestañas por rol (consulta, operador, admin), registrar un movimiento, no poder
+eliminarse a sí mismo, crear a «maria» y entrar con ella, además del registro con aprobación.
+GitHub ejecuta estas pruebas en cada cambio (`.github/workflows/pruebas.yml`).
 
-Después del registro la app ofrece **proteger la app**: creas un PIN de 4 dígitos y activas
-Face ID. Desde ahí, cada vez que abres MoneyOS (o vuelves a ella después de salir) se pide
-Face ID; si falla, puedes usar el PIN (5 intentos y luego una espera de 30 segundos). Mientras
-la app está en segundo plano se tapa el contenido. Se activa o desactiva en el perfil.
+## Publicar en internet (Render)
 
-Face ID funciona con una *llave de acceso* (passkey) que iOS guarda en el llavero para
-`ggjuan00.github.io`. Es un bloqueo de pantalla para tu privacidad: los datos siguen guardados
-en el teléfono sin cifrar. El PIN se guarda solo como hash.
+1. Pulsa el botón **Deploy to Render** de arriba (o en Render: **New → Blueprint** y elige este
+   repositorio). Render lee `render.yaml` y crea la app y una base de datos PostgreSQL gratis.
+2. Te pedirá dos valores:
+   - `ADMIN_NOMBRE`: tu nombre completo.
+   - `ADMIN_CLAVE`: la contraseña del usuario **admin** (mínimo 4 caracteres; usa una segura).
+3. Espera a que termine (unos minutos) y abre el enlace `https://….onrender.com`.
+4. Entra con **admin** y la clave que pusiste. En internet **no** existen los usuarios de prueba
+   con clave 1234.
 
-## Hora de Colombia y resumen del mes
+Ten en cuenta el plan gratis de Render:
+- La app se “duerme” tras 15 minutos sin uso; la primera visita tarda cerca de un minuto en abrir.
+- La base de datos PostgreSQL gratis **vence a los 30 días** (con 14 días más para pasarla a un
+  plan pago antes de que se borre). Para no perder datos puedes usar una base gratis sin
+  vencimiento, como [Neon](https://neon.tech): crea un proyecto, copia su *connection string*
+  (`postgresql://…`) y ponla en Render en la variable `DATABASE_URL` del servicio `moneyos`.
 
-- Inicio muestra la fecha y la hora de Colombia en vivo, y todos los cálculos (hoy, semana,
-  mes) usan la hora de Colombia aunque el teléfono esté en otra zona horaria.
-- Cuando termina un mes, la primera vez que entras aparece **Resumen del mes**; al tocarlo
-  ves todo el detalle: gastos, ingresos, ahorro, saldo al empezar y al terminar, categorías,
-  gastos más grandes, día de más gasto y comparación con el mes anterior. Los resúmenes
-  pasados quedan en **Gráficas → Resúmenes**.
+## Cómo está organizado (comparado con la guía)
 
-## Diseño y sonido
+| Guía (Java Swing) | MoneyOS (Java web) |
+| --- | --- |
+| `DatosSistema.java` (arreglos paralelos, `cargarDatosIniciales`) | `config/DatosSistema.java` (usuarios iniciales) + base de datos con `modelo/Usuario.java` y `repositorio/*` |
+| `validarLogin()` con `equalsIgnoreCase` / `equals` | `seguridad/DetallesUsuarioServicio.java` + Spring Security (contraseñas BCrypt) |
+| `VentanaLogin.java` (JFrame, JPasswordField, JCheckBox, 3 intentos) | `web/LoginControlador.java` + `templates/login.html` + `seguridad/ManejadorLoginFallido.java` |
+| `PanelAdministrativo.java` (JTabbedPane, insignia con `switch`, cerrar sesión) | `web/PanelControlador.java` (pestañas por rol) + `templates/panel.html` |
+| `JTable` + `DefaultTableModel` | Tablas HTML en `templates/pestanas/*.html` |
+| `JOptionPane` | Ventanas de aviso y confirmación (`web/Aviso.java`, `fragmentos/base.html`) |
+| Roles `"ADMIN"`, `"OPERADOR"`, `"CONSULTA"` | `modelo/Rol.java` (con colores y permisos) |
 
-- Paleta negro y gris (grafito), con tarjeta de saldo estilo metal y tipografía Manrope.
-- Animaciones suaves: el saldo cuenta hasta su valor, las pestañas y listas aparecen con
-  transición, las hojas suben desde abajo y los botones responden al tocarlos. Se desactivan
-  si el iPhone tiene activado *Reducir movimiento*.
-- Sonidos suaves tipo campana al agregar dinero, registrar una transacción o borrar un
-  movimiento, generados en el momento con la Web Audio API (sin archivos de audio).
-  Se pueden apagar en el perfil (toca tus iniciales → **Sonidos**). En iPhone no suenan
-  si el celular está en modo silencio.
+```
+src/main/java/com/moneyos/
+├── MoneyOsAplicacion.java        ← main: arranca el servidor
+├── config/      DatosSistema, SeguridadConfig, BaseDeDatosConfig
+├── modelo/      Usuario, Rol, EstadoUsuario, Movimiento, TipoMovimiento, Categoria, Ajuste
+├── repositorio/ consultas a la base de datos
+├── seguridad/   login, intentos fallidos y bloqueo
+├── servicio/    UsuarioServicio (usuarios) y FinanzasServicio (saldo, gráficas, resúmenes)
+├── util/        Colombia (hora de Colombia y formato de pesos)
+└── web/         controladores de las pantallas
+src/main/resources/
+├── templates/   login, registro, panel y sus pestañas (Thymeleaf)
+└── static/      estilos (css) y detalles visuales (js)
+```
 
-Tecnologías: React 19, TypeScript, Vite, Tailwind CSS 4, Recharts y Electron (escritorio).
+## Versión anterior
+
+La versión anterior de MoneyOS (React/TypeScript, con la app de escritorio) quedó guardada en la
+rama **`version-react`**.

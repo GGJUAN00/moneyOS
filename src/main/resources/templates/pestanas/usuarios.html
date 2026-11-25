@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="contenido">
+    <div class="titulo-pestana">
+        <div><h1>Gestión de Usuarios</h1><p>Solo el administrador ve esta pestaña.</p></div>
+    </div>
+
+    <!-- Formulario superior: crear nuevo usuario -->
+    <form class="tarjeta" th:action="@{/panel/usuarios}" method="post" style="margin-bottom:14px" autocomplete="off">
+        <h2>Crear nuevo usuario</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:0 12px;align-items:end">
+            <label class="campo"><span>Usuario:</span><input class="entrada" name="usuario" autocapitalize="none" spellcheck="false" placeholder="Ej. maria"></label>
+            <label class="campo"><span>Contraseña:</span><input class="entrada" name="clave" type="password" autocomplete="new-password" placeholder="Mínimo 4"></label>
+            <label class="campo"><span>Nombre completo:</span><input class="entrada" name="nombreCompleto" placeholder="Ej. María Gómez"></label>
+            <label class="campo"><span>Rol:</span>
+                <select class="entrada" name="rol"><option th:each="r : ${roles}" th:value="${r}" th:text="${r}" th:selected="${r.name() == 'OPERADOR'}"></option></select>
+            </label>
+            <div class="campo"><button class="boton principal ancho">Crear usuario</button></div>
+        </div>
+    </form>
+
+    <form class="filtros" th:action="@{/panel}" method="get">
+        <input type="hidden" name="pestana" value="usuarios">
+        <input class="entrada" name="q" th:value="${q}" placeholder="Buscar por usuario o nombre…">
+        <button class="boton">Buscar</button>
+    </form>
+
+    <!-- Tabla de usuarios (sin contraseñas, por seguridad) -->
+    <div class="tabla-caja">
+        <table class="tabla">
+            <thead>
+            <tr><th></th><th>Usuario</th><th>Nombre completo</th><th>Rol</th><th>Estado</th><th>Último ingreso</th><th class="derecha">Acciones</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="u : ${listaUsuarios}">
+                <td><input type="radio" name="id" form="form-eliminar" th:value="${u.id}" th:attr="data-usuario=${u.usuario}"
+                           th:aria-label="'Seleccionar ' + ${u.usuario}" style="accent-color:#F4F4F5;width:16px;height:16px"></td>
+                <td><b th:text="${u.usuario}"></b> <small class="tenue" th:if="${u.usuario == usuario.usuario}">(tú)</small></td>
+                <td>
+                    <span th:text="${u.nombreCompleto}"></span>
+                    <small class="tenue" style="display:block" th:if="${u.correo != null}" th:text="${u.correo} + (${u.celular != null} ? ' · ' + ${u.celular} : '')"></small>
+                </td>
+                <td><span class="insignia" th:style="'background:' + ${u.rol.color}" th:text="${u.rol}"></span></td>
+                <td>
+                    <span th:if="${u.estado.name() == 'PENDIENTE'}" class="chip" style="color:var(--aviso)">Pendiente</span>
+                    <span th:if="${u.estado.name() == 'ACTIVO' and u.estaBloqueado(ahora)}" class="chip" style="color:var(--alerta)">Bloqueado</span>
+                    <span th:if="${u.estado.name() == 'ACTIVO' and !u.estaBloqueado(ahora)}" class="chip">Activo</span>
+                </td>
+                <td class="tenue num" th:text="${@fmt.fechaHora(u.ultimoIngreso)}"></td>
+                <td class="derecha" style="white-space:nowrap">
+                    <!-- Aprobar una cuenta pendiente con un rol -->
+                    <form th:if="${u.estado.name() == 'PENDIENTE'}" th:action="@{/panel/usuarios/{id}/aprobar(id=${u.id})}" method="post" style="display:inline-flex;gap:6px">
+                        <select class="entrada" name="rol"><option th:each="r : ${roles}" th:value="${r}" th:text="${r}" th:selected="${r.name() == 'CONSULTA'}"></option></select>
+                        <button class="boton chico principal">Aprobar</button>
+                    </form>
+                    <!-- Cambiar el rol -->
+                    <form th:if="${u.estado.name() == 'ACTIVO'}" th:action="@{/panel/usuarios/{id}/rol(id=${u.id})}" method="post" style="display:inline-flex;gap:6px">
+                        <select class="entrada" name="rol" th:aria-label="'Rol de ' + ${u.usuario}"><option th:each="r : ${roles}" th:value="${r}" th:text="${r}" th:selected="${r == u.rol}"></option></select>
+                        <button class="boton chico">Cambiar</button>
+                    </form>
+                    <form th:if="${u.estaBloqueado(ahora)}" th:action="@{/panel/usuarios/{id}/desbloquear(id=${u.id})}" method="post" style="display:inline">
+                        <button class="boton chico">Desbloquear</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Botón inferior: eliminar el usuario seleccionado (como en la guía) -->
+    <form id="form-eliminar" th:action="@{/panel/usuarios/eliminar}" method="post" class="fila-botones"
+          data-titulo-confirmar="Confirmar eliminación" data-confirmar="¿Está seguro de eliminar al usuario '{usuario}'?">
+        <button class="boton peligro">Eliminar usuario seleccionado</button>
+    </form>
+</th:block>
+</body>
+</html>

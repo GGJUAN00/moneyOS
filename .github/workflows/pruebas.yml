@@ -1,0 +1,19 @@
+name: Pruebas
+
+# Compila MoneyOS y ejecuta el plan de pruebas (mvn test) en cada cambio.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - run: mvn -B test

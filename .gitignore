@@ -1,5 +1,11 @@
-node_modules
-dist
-*.log
+# Compilación
+target/
+# Base de datos local (H2)
+datos/
+# IntelliJ IDEA
+.idea/
+*.iml
+out/
+# Sistema
 .DS_Store
-release
+*.log

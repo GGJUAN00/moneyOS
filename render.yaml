@@ -1,0 +1,30 @@
+# Configuración para desplegar MoneyOS en Render con un clic ("Blueprint").
+# Crea la app web (Java en Docker) y una base de datos PostgreSQL gratis.
+services:
+  - type: web
+    name: moneyos
+    runtime: docker
+    plan: free
+    region: virginia
+    healthCheckPath: /salud
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: DATABASE_URL
+        fromDatabase:
+          name: moneyos-db
+          property: connectionString
+      - key: ADMIN_USUARIO
+        value: admin
+      # Render te pedirá estos dos valores al crear la app:
+      - key: ADMIN_NOMBRE
+        sync: false
+      - key: ADMIN_CLAVE
+        sync: false
+
+databases:
+  - name: moneyos-db
+    plan: free
+    region: virginia
+    databaseName: moneyos
+    user: moneyos

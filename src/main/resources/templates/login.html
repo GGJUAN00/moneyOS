@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/base :: cabeza('Iniciar sesión')}"></head>
+<body>
+<main class="acceso">
+    <div class="caja">
+        <div class="marca">
+            <span class="logo metal" th:insert="~{fragmentos/base :: logo(22)}"></span>
+            <b>MoneyOS</b>
+        </div>
+
+        <span class="etiqueta">Bienvenido</span>
+        <h1>INICIO DE SESIÓN</h1>
+        <p class="sub">Sistema de finanzas personales · Pesos colombianos</p>
+
+        <!-- Formulario (CENTER de la guía): usuario, contraseña, mostrar contraseña e intentos -->
+        <form th:action="@{/login}" method="post" autocomplete="on" novalidate>
+            <fieldset th:disabled="${bloqueado}" style="border:0;padding:0;margin:0">
+                <label class="campo">
+                    <span>Usuario:</span>
+                    <input class="entrada" type="text" name="username" th:value="${ultimoUsuario}"
+                           autocomplete="username" autocapitalize="none" spellcheck="false" autofocus
+                           placeholder="Ej. admin">
+                </label>
+                <label class="campo">
+                    <span>Contraseña:</span>
+                    <input class="entrada" type="password" name="password" id="clave"
+                           autocomplete="current-password" placeholder="••••">
+                </label>
+                <label class="casilla" style="margin-bottom:14px">
+                    <input type="checkbox" data-mostrar-clave="#clave"> Mostrar contraseña
+                </label>
+            </fieldset>
+
+            <div class="seguridad">
+                <b>Seguridad:</b>
+                <span th:if="${!bloqueado}" class="intentos" th:classappend="${intentosDisponibles == 0} ? 'cero'"
+                      th:text="'Intentos disponibles: ' + ${intentosDisponibles}">Intentos disponibles: 3</span>
+                <span th:if="${bloqueado}" class="intentos cero">
+                    Bloqueado · <span class="num" th:attr="data-bloqueo=${segundosBloqueo}">5:00</span>
+                </span>
+            </div>
+
+            <!-- Botones (SOUTH de la guía): Limpiar e Ingresar. Enter también ingresa. -->
+            <div class="fila-botones">
+                <button type="button" class="boton" data-limpiar th:disabled="${bloqueado}">Limpiar</button>
+                <button type="submit" class="boton principal" th:disabled="${bloqueado}">Ingresar</button>
+            </div>
+        </form>
+
+        <p class="pie-acceso">¿No tienes cuenta? <a th:href="@{/registro}">Crear cuenta</a></p>
+        <p class="reloj-pie"><span data-reloj="completo"></span> · Hora de Colombia</p>
+    </div>
+</main>
+
+<div th:replace="~{fragmentos/base :: aviso}"></div>
+<script th:src="@{/js/moneyos.js}"></script>
+</body>
+</html>

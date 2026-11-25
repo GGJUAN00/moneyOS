@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/base :: cabeza('Crear cuenta')}"></head>
+<body>
+<main class="acceso">
+    <div class="caja ancha">
+        <div class="marca">
+            <span class="logo metal" th:insert="~{fragmentos/base :: logo(22)}"></span>
+            <b>MoneyOS</b>
+        </div>
+
+        <span class="etiqueta">Registro de usuarios</span>
+        <h1>Crear cuenta</h1>
+        <p class="sub">Todos los campos son obligatorios. Un administrador aprobará tu cuenta y te asignará un rol.</p>
+
+        <form th:action="@{/registro}" method="post" novalidate>
+            <label class="campo">
+                <span>Nombre completo</span>
+                <input class="entrada" name="nombreCompleto" th:value="${nombreCompleto}" autocomplete="name"
+                       placeholder="Ej. Juan Camilo Pérez" autofocus>
+            </label>
+            <div class="rejilla-2">
+                <label class="campo">
+                    <span>Usuario (para entrar)</span>
+                    <input class="entrada" name="usuario" th:value="${usuario}" autocomplete="username"
+                           autocapitalize="none" spellcheck="false" placeholder="Ej. juanc">
+                </label>
+                <label class="campo">
+                    <span>Celular</span>
+                    <input class="entrada" name="celular" th:value="${celular}" inputmode="numeric"
+                           autocomplete="tel-national" placeholder="300 123 4567">
+                </label>
+            </div>
+            <label class="campo">
+                <span>Correo electrónico</span>
+                <input class="entrada" name="correo" type="email" th:value="${correo}" autocomplete="email"
+                       placeholder="tucorreo@ejemplo.com">
+            </label>
+            <div class="rejilla-2">
+                <label class="campo">
+                    <span>Contraseña (mínimo 6)</span>
+                    <input class="entrada clave-registro" name="clave" type="password" autocomplete="new-password">
+                </label>
+                <label class="campo">
+                    <span>Confirmar contraseña</span>
+                    <input class="entrada clave-registro" name="confirmar" type="password" autocomplete="new-password">
+                </label>
+            </div>
+            <label class="casilla" style="margin-bottom:12px">
+                <input type="checkbox" data-mostrar-clave=".clave-registro"> Mostrar contraseña
+            </label>
+            <label class="casilla tarjeta" style="align-items:flex-start;padding:14px">
+                <input type="checkbox" name="aceptaDatos" value="true" th:checked="${aceptaDatos}" style="margin-top:2px">
+                <span style="font-size:12px">Autorizo el tratamiento de mis datos personales conforme a la Ley 1581 de 2012.
+                    Mis datos se usan solo dentro de MoneyOS.</span>
+            </label>
+
+            <div class="fila-botones" style="margin-top:16px">
+                <button type="button" class="boton" data-limpiar>Limpiar</button>
+                <button type="submit" class="boton principal">Crear cuenta</button>
+            </div>
+        </form>
+
+        <p class="pie-acceso">¿Ya tienes cuenta? <a th:href="@{/login}">Iniciar sesión</a></p>
+    </div>
+</main>
+
+<div th:replace="~{fragmentos/base :: aviso}"></div>
+<script th:src="@{/js/moneyos.js}"></script>
+</body>
+</html>

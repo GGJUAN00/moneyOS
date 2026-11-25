@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/base :: cabeza('Panel Administrativo')}"></head>
+<body th:attr="data-sonido=${usuario.sonido}">
+<div class="panel">
+
+    <!-- 1. Barra superior: bienvenida, insignia de rol y cerrar sesión (NORTH de la guía) -->
+    <header class="barra-superior">
+        <div style="display:flex;align-items:center;gap:14px">
+            <span class="logo metal" style="width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center"
+                  th:insert="~{fragmentos/base :: logo(20)}"></span>
+            <div>
+                <div class="titulo-sistema">MONEYOS · PANEL ADMINISTRATIVO</div>
+                <div class="bienvenida" th:text="'Bienvenido(a): ' + ${usuario.nombreCompleto} + ' (' + ${usuario.usuario} + ')'">Bienvenido(a)</div>
+            </div>
+        </div>
+        <div class="acciones">
+            <span class="reloj"><span class="punto"></span><span data-reloj class="num"></span></span>
+            <!-- Insignia de color según el rol (el switch de la guía) -->
+            <span class="insignia" th:style="'background:' + ${rol.color}" th:text="'ROL: ' + ${rol}">ROL</span>
+            <form th:action="@{/logout}" method="post" id="form-salir"
+                  data-titulo-confirmar="Cerrar sesión"
+                  data-confirmar="¿Desea cerrar la sesión actual y volver al inicio de sesión?">
+                <button type="submit" class="boton chico">Cerrar sesión</button>
+            </form>
+        </div>
+    </header>
+
+    <!-- 2. Pestañas (JTabbedPane): solo las que permite el rol -->
+    <nav class="pestanas" aria-label="Secciones">
+        <a th:each="p : ${pestanas}" th:href="@{/panel(pestana=${p.clave()})}"
+           th:classappend="${p.clave() == pestana} ? 'activa'"
+           th:attr="aria-current=${p.clave() == pestana} ? 'page' : null">
+            <th:block th:replace="~{fragmentos/base :: icono(${p.icono()})}"></th:block>
+            <span th:text="${p.titulo()}">Pestaña</span>
+        </a>
+    </nav>
+
+    <!-- 3. Contenido de la pestaña elegida -->
+    <main class="contenido" th:switch="${pestana}">
+        <th:block th:case="'movimientos'" th:insert="~{pestanas/movimientos :: contenido}"></th:block>
+        <th:block th:case="'registrar'" th:insert="~{pestanas/registrar :: contenido}"></th:block>
+        <th:block th:case="'graficas'" th:insert="~{pestanas/graficas :: contenido}"></th:block>
+        <th:block th:case="'usuarios'" th:insert="~{pestanas/usuarios :: contenido}"></th:block>
+        <th:block th:case="'cuenta'" th:insert="~{pestanas/cuenta :: contenido}"></th:block>
+        <th:block th:case="*" th:insert="~{pestanas/inicio :: contenido}"></th:block>
+    </main>
+
+    <!-- 4. Barra de estado (SOUTH de la guía) -->
+    <footer class="barra-estado">
+        <span th:text="'MoneyOS · Java 21 + Spring Boot · Sesión activa como: ' + ${rol}">Sesión activa</span>
+        <span th:text="${@fmt.hoyLargo()} + ' · Hora de Colombia'">Fecha</span>
+    </footer>
+</div>
+
+<div th:replace="~{fragmentos/base :: aviso}"></div>
+<dialog th:replace="~{fragmentos/base :: confirmar}"></dialog>
+<script th:src="@{/js/moneyos.js}"></script>
+</body>
+</html>

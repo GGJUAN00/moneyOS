@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="contenido">
+    <div class="titulo-pestana"><div><h1>Mi cuenta</h1><p>Tus datos, contraseña y sonidos.</p></div></div>
+    <div class="rejilla cols-2 escalonado">
+        <section class="tarjeta">
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+                <span style="width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;color:#050505;background:linear-gradient(135deg,#F4F4F5,#8C8C93)"
+                      th:text="${usuario.iniciales}">JC</span>
+                <div><b style="font-size:17px" th:text="${usuario.nombreCompleto}"></b><br>
+                    <span class="insignia" th:style="'background:' + ${rol.color}" th:text="${rol}"></span></div>
+            </div>
+            <dl class="perfil-datos">
+                <dt>Usuario</dt><dd th:text="${usuario.usuario}"></dd>
+                <dt>Correo</dt><dd th:text="${usuario.correo != null} ? ${usuario.correo} : '—'"></dd>
+                <dt>Celular</dt><dd th:text="${usuario.celular != null} ? ${usuario.celular} : '—'"></dd>
+                <dt>Creado</dt><dd th:text="${@fmt.fechaHora(usuario.creadoEn)}"></dd>
+                <dt>Último ingreso</dt><dd th:text="${@fmt.fechaHora(usuario.ultimoIngreso)}"></dd>
+            </dl>
+        </section>
+
+        <div class="rejilla" style="gap:14px">
+            <form class="tarjeta" th:action="@{/panel/cuenta/clave}" method="post" autocomplete="off">
+                <h2>Cambiar contraseña</h2>
+                <label class="campo"><span>Contraseña actual</span><input class="entrada clave-cuenta" type="password" name="actual" autocomplete="current-password"></label>
+                <label class="campo"><span>Nueva contraseña (mínimo 6)</span><input class="entrada clave-cuenta" type="password" name="nueva" autocomplete="new-password"></label>
+                <label class="campo"><span>Confirmar nueva contraseña</span><input class="entrada clave-cuenta" type="password" name="confirmar" autocomplete="new-password"></label>
+                <label class="casilla"><input type="checkbox" data-mostrar-clave=".clave-cuenta"> Mostrar contraseña</label>
+                <div class="fila-botones"><button class="boton principal">Guardar contraseña</button></div>
+            </form>
+
+            <form class="tarjeta" th:action="@{/panel/cuenta/sonido}" method="post"
+                  style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+                <input type="hidden" name="activo" th:value="${!usuario.sonido}">
+                <div><b>Sonidos</b><br><small class="tenue">Al guardar o eliminar un movimiento</small></div>
+                <button class="interruptor" th:classappend="${usuario.sonido} ? 'encendido'" role="switch"
+                        th:attr="aria-checked=${usuario.sonido}" aria-label="Sonidos"></button>
+            </form>
+        </div>
+    </div>
+</th:block>
+</body>
+</html>

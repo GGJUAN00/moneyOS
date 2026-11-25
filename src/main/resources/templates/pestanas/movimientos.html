@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="contenido">
+    <div class="titulo-pestana">
+        <div>
+            <h1>Movimientos</h1>
+            <p th:text="${cantidad} + (${cantidad == 1} ? ' registro' : ' registros') + ' · gastado ' + ${@fmt.pesos(totalGastos)} + ' · recibido ' + ${@fmt.pesos(totalIngresos)}"></p>
+        </div>
+        <a class="boton chico principal" th:if="${rol.puedeRegistrar()}" th:href="@{/panel(pestana='registrar')}">＋ Registrar movimiento</a>
+    </div>
+
+    <!-- Buscador (Reto 2 de la guía) -->
+    <form class="filtros" th:action="@{/panel}" method="get">
+        <input type="hidden" name="pestana" value="movimientos">
+        <input class="entrada" name="q" th:value="${q}" placeholder="Buscar por descripción o categoría…">
+        <select class="entrada" name="cat">
+            <option value="">Todas las categorías</option>
+            <option value="INGRESOS" th:selected="${cat == 'INGRESOS'}">Solo ingresos</option>
+            <option th:each="c : ${categoriasGasto}" th:value="${c.name()}" th:text="${c.nombre}" th:selected="${cat == c.name()}"></option>
+        </select>
+        <button class="boton">Buscar</button>
+        <a class="boton" th:href="@{/panel(pestana='movimientos')}" th:if="${!q.isEmpty() or !cat.isEmpty()}">Quitar filtro</a>
+    </form>
+
+    <!-- Tabla de movimientos (JTable de la guía) -->
+    <div class="tabla-caja" th:if="${!grupos.isEmpty()}">
+        <table class="tabla">
+            <thead>
+            <tr>
+                <th>Descripción</th>
+                <th>Categoría</th>
+                <th>Tipo</th>
+                <th>Registrado por</th>
+                <th class="derecha">Monto</th>
+                <th class="derecha" th:if="${rol.puedeRegistrar()}">Acción</th>
+            </tr>
+            </thead>
+            <tbody>
+            <th:block th:each="g : ${grupos}">
+                <tr class="grupo">
+                    <td th:colspan="${rol.puedeRegistrar()} ? 5 : 4" th:text="${g.dia()}"></td>
+                    <td class="derecha num" th:text="${@fmt.conSigno(g.total())}"></td>
+                </tr>
+                <tr th:each="m : ${g.movimientos()}">
+                    <td>
+                        <span class="mono-icono" th:text="${m.categoria.icono}"></span>
+                        <span th:text="${m.titulo}" style="margin-left:6px"></span>
+                    </td>
+                    <td><span class="chip" th:text="${m.categoria.nombre}"></span></td>
+                    <td class="tenue" th:text="${m.tipo.nombre}"></td>
+                    <td class="tenue" th:text="${m.registradoPor != null} ? ${m.registradoPor.usuario} : '—'"></td>
+                    <td class="derecha monto num" th:classappend="${m.esIngreso()} ? 'ingreso' : 'gasto'"
+                        th:text="${@fmt.conSigno(m.montoConSigno)}"></td>
+                    <td class="derecha" th:if="${rol.puedeRegistrar()}">
+                        <form th:if="${borrables.contains(m.id)}" th:action="@{/panel/movimientos/{id}/eliminar(id=${m.id})}" method="post"
+                              th:id="'borrar-' + ${m.id}" data-titulo-confirmar="Confirmar eliminación"
+                              th:data-confirmar="|¿Está seguro de eliminar «${m.titulo}» por $ ${#numbers.formatInteger(m.monto, 1, 'POINT')}?|">
+                            <button class="boton chico peligro">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+            </th:block>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="tarjeta vacio" th:if="${grupos.isEmpty()}">
+        <span class="grande mono-icono">🧾</span>
+        <span th:text="${q.isEmpty() and cat.isEmpty()} ? 'Todavía no hay movimientos registrados.' : 'Ningún movimiento coincide con la búsqueda.'"></span>
+    </div>
+</th:block>
+</body>
+</html>

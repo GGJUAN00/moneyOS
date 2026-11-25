@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="contenido">
+<div class="escalonado">
+
+    <!-- Resumen del mes que terminó -->
+    <div class="tarjeta metal banda" th:if="${resumenPendiente != null}">
+        <div style="position:relative;z-index:1">
+            <span class="etiqueta" th:text="'Terminó ' + ${resumenPendiente.nombre()}">Terminó</span>
+            <h2 style="margin:4px 0 0;font-weight:300;font-size:22px">Resumen del mes</h2>
+            <p>
+                Gastaste <b class="num" th:text="${@fmt.pesos(resumenPendiente.gastos())}"></b>
+                <th:block th:if="${resumenPendiente.ingresos() > 0}">
+                    · Ahorraste <b class="num" th:text="${@fmt.conSigno(resumenPendiente.ahorro())}"></b>
+                </th:block>
+            </p>
+        </div>
+        <div style="display:flex;gap:8px;position:relative;z-index:1">
+            <form th:action="@{/panel/resumen/visto}" method="post">
+                <input type="hidden" name="mes" th:value="${resumenPendiente.mes()}">
+                <button class="boton chico">Después</button>
+            </form>
+            <form th:action="@{/panel/resumen/visto}" method="post">
+                <input type="hidden" name="mes" th:value="${resumenPendiente.mes()}">
+                <input type="hidden" name="abrir" value="true">
+                <button class="boton chico principal">Ver resumen</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Cuentas que esperan aprobación (solo ADMIN) -->
+    <div class="tarjeta banda" th:if="${rol.name() == 'ADMIN' and pendientes > 0}">
+        <div>
+            <b th:text="${pendientes} + (${pendientes == 1} ? ' cuenta espera' : ' cuentas esperan') + ' aprobación'"></b>
+            <p>Revísalas en Gestión de Usuarios y asígnales un rol.</p>
+        </div>
+        <a class="boton chico" th:href="@{/panel(pestana='usuarios')}">Ver usuarios</a>
+    </div>
+
+    <div class="rejilla principal">
+        <div class="rejilla" style="gap:14px">
+            <!-- Saldo -->
+            <section class="tarjeta metal saldo">
+                <span class="etiqueta" style="position:relative;z-index:1">Saldo disponible</span>
+                <div class="valor num" th:classappend="${saldo < 0} ? 'negativo'" style="position:relative;z-index:1"
+                     th:text="(${saldo < 0} ? '-' : '') + ${@fmt.pesos(saldo)}">$ 0</div>
+                <span class="tenue" style="font-size:13px;position:relative;z-index:1"
+                      th:text="${totalMovimientos == 0} ? 'Agrega la plata que tienes en Nequi o el banco para empezar' : 'Según los movimientos registrados'"></span>
+                <div class="atajos" th:if="${rol.puedeRegistrar()}">
+                    <a class="boton principal" th:href="@{/panel(pestana='registrar',tipo='INGRESO')}">＋ Agregar dinero</a>
+                    <a class="boton" th:href="@{/panel(pestana='registrar',tipo='GASTO')}">− Transacción</a>
+                </div>
+            </section>
+
+            <!-- Tarjetas de resumen (Total de Movimientos y Total de Usuarios, como en la guía) -->
+            <div class="rejilla cols-3">
+                <div class="tarjeta dato">
+                    <div class="etiqueta-dato">Ingresos</div>
+                    <div class="valor-dato num" th:text="(${ingresosMes > 0} ? '+' : '') + ${@fmt.corto(ingresosMes)}"></div>
+                    <div class="nota" th:text="${nombreMes}"></div>
+                </div>
+                <div class="tarjeta dato">
+                    <div class="etiqueta-dato">Gastos</div>
+                    <div class="valor-dato num" th:text="(${gastosMes > 0} ? '-' : '') + ${@fmt.corto(gastosMes)}"></div>
+                    <div class="nota" th:text="${nombreMes}"></div>
+                </div>
+                <div class="tarjeta dato">
+                    <div class="etiqueta-dato">Ahorro</div>
+                    <div class="valor-dato num" th:text="${ingresosMes > 0} ? ${@fmt.corto(ahorroMes)} : '—'"
+                         th:style="${ahorroMes < 0 and ingresosMes > 0} ? 'color:var(--alerta)'"></div>
+                    <div class="nota" th:text="${ingresosMes > 0} ? ${nombreMes} : 'sin ingresos aún'"></div>
+                </div>
+                <div class="tarjeta dato">
+                    <div class="etiqueta-dato">Total de movimientos</div>
+                    <div class="valor-dato num" th:text="${totalMovimientos} + ' registrados'"></div>
+                </div>
+                <div class="tarjeta dato">
+                    <div class="etiqueta-dato">Total de usuarios</div>
+                    <div class="valor-dato num" th:text="${totalUsuarios} + ' activos'"></div>
+                </div>
+                <div class="tarjeta dato">
+                    <div class="etiqueta-dato">Hora de Colombia</div>
+                    <div class="valor-dato num" data-reloj style="font-size:17px"></div>
+                </div>
+            </div>
+
+            <!-- Presupuesto -->
+            <section class="tarjeta">
+                <div class="cabecera">
+                    <h2>Presupuesto mensual</h2>
+                    <span class="num tenue" style="font-size:13px" th:if="${presupuesto > 0}"
+                          th:text="${@fmt.corto(gastosMes)} + ' / ' + ${@fmt.corto(presupuesto)}"></span>
+                </div>
+                <div class="barra-progreso">
+                    <div th:style="'width:' + ${presupuestoPct > 100 ? 100 : presupuestoPct} + '%'"
+                         th:classappend="${presupuestoPct > 90} ? 'excedido'"></div>
+                </div>
+                <p class="tenue" style="font-size:12px;margin:8px 0 0" th:if="${presupuesto > 0}"
+                   th:text="${presupuestoPct} + '% usado · ' + (${diasRestantes == 1} ? 'último día del mes' : 'quedan ' + ${diasRestantes} + ' días') + ' · ' + (${presupuesto - gastosMes >= 0} ? ${@fmt.corto(presupuesto - gastosMes)} + ' restante' : ${@fmt.corto(gastosMes - presupuesto)} + ' excedido')"></p>
+                <p class="tenue" style="font-size:12px;margin:8px 0 0" th:if="${presupuesto == 0}">Ponte un límite de gasto para el mes.</p>
+                <form th:if="${rol.puedeRegistrar()}" th:action="@{/panel/presupuesto}" method="post"
+                      style="display:flex;gap:8px;margin-top:12px">
+                    <input class="entrada" name="monto" data-monto inputmode="numeric" placeholder="Ej. 1.500.000"
+                           th:value="${presupuesto > 0} ? ${#numbers.formatInteger(presupuesto, 1, 'POINT')} : ''" style="padding:9px 12px">
+                    <button class="boton chico">Guardar</button>
+                </form>
+            </section>
+
+            <!-- Sus permisos activos según el rol -->
+            <section class="tarjeta permisos">
+                <h2 th:text="'Permisos de ' + ${rol} + (${rol.name() == 'CONSULTA'} ? ' (solo lectura)' : '')">Permisos</h2>
+                <ul><li th:each="p : ${rol.permisos()}" th:text="${p}"></li></ul>
+            </section>
+        </div>
+
+        <div class="rejilla" style="gap:14px">
+            <!-- Gastos del mes por categoría -->
+            <section class="tarjeta">
+                <div class="cabecera">
+                    <h2>Gastos del mes</h2>
+                    <a class="tenue" style="font-size:12px" th:href="@{/panel(pestana='graficas')}">Ver gráficas →</a>
+                </div>
+                <div class="dona-caja" th:if="${!categorias.isEmpty()}">
+                    <div class="dona" th:style="'background:' + ${dona}">
+                        <div class="centro"><small>gastado</small><b class="num" th:text="${@fmt.corto(gastosMes)}"></b></div>
+                    </div>
+                    <div class="leyenda">
+                        <div th:each="c : ${categorias}">
+                            <i th:style="'background:' + ${c.categoria().color}"></i>
+                            <span th:text="${c.categoria().nombre}"></span>
+                            <b class="num" th:text="${@fmt.corto(c.monto())}"></b>
+                        </div>
+                    </div>
+                </div>
+                <p class="vacio" th:if="${categorias.isEmpty()}">Aún no hay gastos este mes</p>
+            </section>
+
+            <!-- Recientes -->
+            <section class="tarjeta">
+                <div class="cabecera">
+                    <h2>Recientes</h2>
+                    <a class="tenue" style="font-size:12px" th:href="@{/panel(pestana='movimientos')}">Ver todos →</a>
+                </div>
+                <div class="lista-mov" th:if="${!recientes.isEmpty()}">
+                    <div class="mov" th:each="m : ${recientes}">
+                        <div class="icono mono-icono" th:text="${m.categoria.icono}"></div>
+                        <div class="info">
+                            <b th:text="${m.titulo}"></b>
+                            <small th:text="${m.categoria.nombre} + ' · ' + ${@fmt.dia(m.fecha)}"></small>
+                        </div>
+                        <span class="monto num" th:classappend="${m.esIngreso()} ? 'ingreso' : 'gasto'"
+                              th:text="${@fmt.conSigno(m.montoConSigno)}"></span>
+                    </div>
+                </div>
+                <div class="vacio" th:if="${recientes.isEmpty()}"><span class="grande mono-icono">🧾</span>Aquí verás los últimos movimientos</div>
+            </section>
+        </div>
+    </div>
+</div>
+</th:block>
+</body>
+</html>

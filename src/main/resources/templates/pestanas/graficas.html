@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="contenido">
+
+<!-- ===== Detalle del resumen de un mes ===== -->
+<th:block th:if="${resumen != null}" th:with="r=${resumen}">
+    <div class="titulo-pestana">
+        <div>
+            <span class="etiqueta">Resumen del mes</span>
+            <h1 th:text="${r.nombre()}">Mes</h1>
+        </div>
+        <a class="boton chico" th:href="@{/panel(pestana='graficas')}">← Volver a gráficas</a>
+    </div>
+    <div class="escalonado rejilla" style="gap:14px">
+        <section class="tarjeta metal saldo">
+            <span class="etiqueta" style="position:relative;z-index:1">Gastaste</span>
+            <div class="valor num" style="position:relative;z-index:1" th:text="${@fmt.pesos(r.gastos())}"></div>
+            <span class="tenue" style="font-size:13px;position:relative;z-index:1"
+                  th:text="${r.comparacionMesAnterior() != null}
+                      ? ((${r.comparacionMesAnterior() <= 0} ? '↓ ' : '↑ ') + ${@fmt.pct(r.comparacionMesAnterior() < 0 ? -r.comparacionMesAnterior() : r.comparacionMesAnterior())} + (${r.comparacionMesAnterior() <= 0} ? ' menos' : ' más') + ' que el mes anterior')
+                      : ${r.cantidadGastos()} + ' gastos en ' + ${r.diasConGasto()} + ' días'"></span>
+        </section>
+        <div class="rejilla cols-2" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+            <div class="tarjeta dato"><div class="etiqueta-dato">Ingresos</div><div class="valor-dato num" th:text="${@fmt.conSigno(r.ingresos())}"></div></div>
+            <div class="tarjeta dato"><div class="etiqueta-dato">Ahorro</div>
+                <div class="valor-dato num" th:text="${r.ingresos() > 0} ? ${@fmt.conSigno(r.ahorro())} : '—'"></div>
+                <div class="nota" th:if="${r.tasaAhorro() != null}" th:text="${@fmt.pct(r.tasaAhorro())} + ' de tus ingresos'"></div></div>
+            <div class="tarjeta dato"><div class="etiqueta-dato">Saldo al empezar</div><div class="valor-dato num" th:text="${@fmt.pesos(r.saldoInicio())}"></div></div>
+            <div class="tarjeta dato"><div class="etiqueta-dato">Saldo al terminar</div><div class="valor-dato num" th:text="${@fmt.pesos(r.saldoFin())}"></div></div>
+        </div>
+        <div class="rejilla cols-2">
+            <section class="tarjeta">
+                <h2>Datos del mes</h2>
+                <dl class="perfil-datos">
+                    <dt>Categoría principal</dt><dd th:text="${r.categorias().isEmpty()} ? '—' : ${r.categorias()[0].categoria().nombre} + ' · ' + ${@fmt.corto(r.categorias()[0].monto())}"></dd>
+                    <dt>Día de más gasto</dt><dd th:text="${r.diaMayorGasto() == null} ? '—' : ${r.diaMayorGasto()} + ' · ' + ${@fmt.corto(r.montoDiaMayor())}"></dd>
+                    <dt>Promedio diario</dt><dd class="num" th:text="${@fmt.pesos(r.promedioDiario())}"></dd>
+                    <dt>Movimientos</dt><dd class="num" th:text="${r.movimientos()}"></dd>
+                </dl>
+            </section>
+            <section class="tarjeta">
+                <h2>Gastos por categoría</h2>
+                <div class="barra-h" th:each="c : ${r.categorias()}">
+                    <div class="fila"><span><span class="mono-icono" th:text="${c.categoria().icono}"></span> <span th:text="${c.categoria().nombre}"></span></span>
+                        <b class="num" th:text="${@fmt.pct(c.porcentaje())} + ' · ' + ${@fmt.corto(c.monto())}"></b></div>
+                    <div class="pista"><div th:style="'width:' + ${c.porcentaje()} + '%;background:' + ${c.categoria().color}"></div></div>
+                </div>
+                <p class="vacio" th:if="${r.categorias().isEmpty()}">No hubo gastos este mes</p>
+            </section>
+        </div>
+        <section class="tarjeta" th:if="${!r.mayoresGastos().isEmpty()}">
+            <h2>Tus gastos más grandes</h2>
+            <div class="lista-mov">
+                <div class="mov" th:each="m : ${r.mayoresGastos()}">
+                    <div class="icono mono-icono" th:text="${m.categoria.icono}"></div>
+                    <div class="info"><b th:text="${m.titulo}"></b><small th:text="${m.categoria.nombre} + ' · ' + ${@fmt.dia(m.fecha)}"></small></div>
+                    <span class="monto gasto num" th:text="${@fmt.conSigno(m.montoConSigno)}"></span>
+                </div>
+            </div>
+        </section>
+    </div>
+</th:block>
+
+<!-- ===== Gráficas ===== -->
+<th:block th:if="${resumen == null}">
+    <div class="titulo-pestana">
+        <div><h1>Gráficas y resúmenes</h1><p th:text="${nombreMes}"></p></div>
+    </div>
+    <div class="escalonado rejilla" style="gap:14px">
+        <div class="rejilla cols-2">
+            <section class="tarjeta">
+                <div class="cabecera"><h2>Gasto por mes</h2><span class="tenue" style="font-size:12px">Últimos 6 meses</span></div>
+                <div class="barras">
+                    <div class="columna" th:each="b : ${barrasMes}">
+                        <span class="cifra num" th:text="${b.valor() > 0} ? ${@fmt.corto(b.valor())} : ''"></span>
+                        <div class="tubo"><div class="relleno" th:classappend="${b.resaltada()} ? 'resaltada'" th:style="'height:' + ${b.altura()} + '%'"></div></div>
+                        <small th:text="${b.etiqueta()}"></small>
+                    </div>
+                </div>
+            </section>
+            <section class="tarjeta">
+                <div class="cabecera"><h2>Esta semana</h2><span class="tenue" style="font-size:12px">Gasto por día</span></div>
+                <div class="barras">
+                    <div class="columna" th:each="b : ${barrasSemana}">
+                        <span class="cifra num" th:text="${b.valor() > 0} ? ${@fmt.corto(b.valor())} : ''"></span>
+                        <div class="tubo"><div class="relleno" th:classappend="${b.resaltada()} ? 'resaltada'" th:style="'height:' + ${b.altura()} + '%'"></div></div>
+                        <small th:text="${b.etiqueta()}"></small>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <section class="tarjeta">
+            <div class="cabecera"><h2>Saldo al final de cada mes</h2></div>
+            <svg class="linea" viewBox="0 0 600 160" role="img" aria-label="Evolución del saldo">
+                <line x1="30" y1="125" x2="570" y2="125" stroke="#262629"/>
+                <polyline th:attr="points=${linea.puntos()}" fill="none" stroke="#F4F4F5" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+                <g th:each="p, i : ${linea.coordenadas()}">
+                    <circle th:attr="cx=${p[0]},cy=${p[1]}" r="3.5" fill="#F4F4F5"/>
+                    <text th:attr="x=${p[0]},y=${p[1] - 10}" text-anchor="middle" fill="#8C8C93" font-size="11" font-family="Manrope"
+                          th:text="${@fmt.corto(linea.valores()[i.index])}"></text>
+                    <text th:attr="x=${p[0]}" y="148" text-anchor="middle" fill="#5E5E65" font-size="11" font-family="Manrope"
+                          th:text="${linea.etiquetas()[i.index]}"></text>
+                </g>
+            </svg>
+        </section>
+
+        <div class="rejilla cols-2">
+            <section class="tarjeta">
+                <div class="cabecera"><h2>Gastos por categoría</h2><span class="tenue" style="font-size:12px" th:text="${nombreMes}"></span></div>
+                <div class="dona-caja" th:if="${!categorias.isEmpty()}" style="margin-bottom:14px">
+                    <div class="dona" th:style="'background:' + ${dona}"><div class="centro"><small>categorías</small><b th:text="${categorias.size()}"></b></div></div>
+                    <div class="leyenda" style="min-width:140px">
+                        <div th:each="c : ${categorias}"><i th:style="'background:' + ${c.categoria().color}"></i><span th:text="${c.categoria().nombre}"></span><b class="num" th:text="${@fmt.pct(c.porcentaje())}"></b></div>
+                    </div>
+                </div>
+                <div class="barra-h" th:each="c : ${categorias}">
+                    <div class="fila"><span><span class="mono-icono" th:text="${c.categoria().icono}"></span> <span th:text="${c.categoria().nombre}"></span> <small class="muy-tenue" th:text="${c.cantidad()} + '×'"></small></span>
+                        <b class="num" th:text="${@fmt.corto(c.monto())}"></b></div>
+                    <div class="pista"><div th:style="'width:' + ${c.porcentaje()} + '%;background:' + ${c.categoria().color}"></div></div>
+                </div>
+                <p class="vacio" th:if="${categorias.isEmpty()}">Aún no hay gastos este mes</p>
+            </section>
+
+            <section class="tarjeta">
+                <div class="cabecera"><h2>Resúmenes</h2><span class="tenue" style="font-size:12px">Meses terminados</span></div>
+                <div class="lista-mov" th:if="${!mesesResumen.isEmpty()}">
+                    <a class="mov" style="text-decoration:none" th:each="m : ${mesesResumen}" th:href="@{/panel(pestana='graficas',mes=${m})}">
+                        <div class="icono">📅</div>
+                        <div class="info"><b th:text="${@fmt.mes(m)}"></b><small>Ver el detalle del mes</small></div>
+                        <span class="tenue">›</span>
+                    </a>
+                </div>
+                <p class="vacio" th:if="${mesesResumen.isEmpty()}">Cuando termine el mes verás aquí su resumen.</p>
+            </section>
+        </div>
+    </div>
+</th:block>
+</th:block>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="contenido">
+    <div class="titulo-pestana">
+        <div>
+            <h1>Registro de nuevo movimiento</h1>
+            <p th:text="'Saldo actual: ' + (${saldo < 0} ? '-' : '') + ${@fmt.pesos(saldo)}"></p>
+        </div>
+    </div>
+
+    <form class="tarjeta" th:action="@{/panel/movimientos}" method="post" style="max-width:760px" novalidate>
+        <!-- ¿Gasto o ingreso? -->
+        <div class="segmentado" role="radiogroup" aria-label="Tipo de movimiento">
+            <label><input type="radio" name="tipo" value="GASTO" th:checked="${tipoInicial == 'GASTO'}"><span>− Gasto / Transacción</span></label>
+            <label><input type="radio" name="tipo" value="INGRESO" th:checked="${tipoInicial == 'INGRESO'}"><span>＋ Agregar dinero</span></label>
+        </div>
+
+        <label class="campo">
+            <span data-pregunta-monto>¿Cuánto gastaste?</span>
+            <div class="monto-grande">
+                <b>$</b>
+                <input name="monto" data-monto inputmode="numeric" autocomplete="off" placeholder="0" aria-label="Monto en pesos" autofocus>
+                <small>COP</small>
+            </div>
+        </label>
+
+        <span class="campo" style="margin-bottom:8px"><span data-pregunta-categoria>¿Qué tipo de gasto es?</span></span>
+        <div class="categorias" data-categorias="GASTO">
+            <label th:each="c : ${categoriasGasto}">
+                <input type="radio" name="categoria" th:value="${c.name()}">
+                <span class="icono mono-icono" th:text="${c.icono}"></span>
+                <span><b th:text="${c.nombre}"></b><small th:text="${c.pista}"></small></span>
+            </label>
+        </div>
+        <div class="categorias" data-categorias="INGRESO">
+            <label th:each="c, i : ${categoriasIngreso}">
+                <input type="radio" name="categoria" th:value="${c.name()}" th:checked="${i.first}">
+                <span class="icono mono-icono" th:text="${c.icono}"></span>
+                <span><b th:text="${c.nombre}"></b><small th:text="${c.pista}"></small></span>
+            </label>
+        </div>
+
+        <div class="rejilla-2">
+            <label class="campo">
+                <span>Descripción (opcional)</span>
+                <input class="entrada" name="descripcion" maxlength="80" placeholder="Ej. Almuerzo, Uber, Netflix">
+            </label>
+            <label class="campo">
+                <span>Fecha</span>
+                <input class="entrada" type="date" name="fecha" th:value="${hoy}" th:max="${hoy}">
+            </label>
+        </div>
+
+        <div class="fila-botones">
+            <button type="button" class="boton" data-limpiar>Limpiar</button>
+            <button type="submit" class="boton principal">Guardar movimiento</button>
+        </div>
+    </form>
+</th:block>
+</body>
+</html>
